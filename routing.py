@@ -1,18 +1,30 @@
 import csv
-from sys import argv
+import sys
+import argparse
 
-# python routing.py topology1.csv
+my_list = []
+vertices = []
 
-csv_file = argv[1]
-myList = []
+# Initialize parser
+parser = argparse.ArgumentParser()
 
-with open(csv_file, newline='') as csvfile:
-    reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+# Adding optional arguments
+parser.add_argument("csv_file", help="CSV File to Read")
+ 
+# Read arguments from command line
+args = parser.parse_args()
+
+csv_file = args.csv_file
+
+with open(csv_file, newline='') as file:
+    reader = csv.reader(file, delimiter=' ', quotechar='|')
     #next(reader, None)  # skip the 1st row (header)
     for row in reader:
-        myList.append(row[0].split(','))
+        my_list.append(row[0].split(','))
 
-#print(myList)
+temp = my_list[0]
+vertices = temp
+
 """
 [
  ['', 'u', 'v', 'w', 'x', 'y', 'z'], 
@@ -25,23 +37,20 @@ with open(csv_file, newline='') as csvfile:
 ]
 """
 
-
-
-def Dijkstra_algorithm():
+def dijkstra_algorithm():
 
     dictionary = {}
 
-    for i in range(1, len(myList)):  # for each row -- skip the first row ['', 'u', 'v', 'w', 'x', 'y', 'z']
+    for i in range(1, len(my_list)):  # for each row -- skip the first row ['', 'u', 'v', 'w', 'x', 'y', 'z']
         array = []
-        for j in range(1, len(myList[i])):  # for each column in a row -- skip the first column of each row (contain letter)
-            myList[i][j] = int(myList[i][j])    # turn all the string number to int
+        for j in range(1, len(my_list[i])):  # for each column in a row -- skip the first column of each row (contain letter)
+            my_list[i][j] = int(my_list[i][j])    # turn all the string number to int
             
-            if myList[i][j] != 0 and myList[i][j] != 9999:
-                array.append([myList[0][j], myList[i][j]])      # array.append([adjacent_node, cost]) -- an array of lists
+            if my_list[i][j] != 0 and my_list[i][j] != 9999:
+                array.append([my_list[0][j], my_list[i][j]])      # array.append([adjacent_node, cost]) -- an array of lists
                 
-        dictionary[myList[i][0]] = array    # dictionary.append(startNode : array of [adjacent_node, cost])
+        dictionary[my_list[i][0]] = array    # dictionary.append(startNode : array of [adjacent_node, cost])
         
-    #print(dictionary)
     """
     {
      'u': [['v', 7], ['w', 3], ['x', 5]], 
@@ -76,8 +85,6 @@ def Dijkstra_algorithm():
                     dictionary[startNode] = links_array
                     break   # go to next startNode
                 
-                
-
     #---------------------MAIN------------------------
 
     source_node = input("Please, provide the source node: ")
@@ -94,7 +101,6 @@ def Dijkstra_algorithm():
     visited_nodes.append([node,cost])       # visited_nodes = [[u,0], [w,3]]
     update_visited_node(node)               # delete links from other nodes to w in dictionary
 
-    #print(dictionary)
     """
     {
      'u': [['v', 7], ['x', 5]],
@@ -105,6 +111,7 @@ def Dijkstra_algorithm():
      'z': [['x', 9], ['y', 2]]
     }
     """
+
     #-------------------END MAIN----------------------
 
     def find_next_node(visited_nodes):
@@ -145,23 +152,60 @@ def Dijkstra_algorithm():
         visited_nodes.append(next_node)
         update_visited_node(next_node[0])
         
-        
     # prints the output
     print(f"\nShortest path tree for node {source_node}:")
     for i in range(len(shortest_paths)):
         print(shortest_paths[i], end=', ')
         
-            
     print(f"\nCosts of the least-cost paths for node {source_node}:")
     for i in range(len(visited_nodes)):
         print(f"{visited_nodes[i][0]}:{visited_nodes[i][1]}", end=', ')   
          
     print()
             
+def distance_vector(source, adj_matrix):
+    N = len(adj_matrix)
+    dist = [sys.maxsize] * N
 
-def Distance_vector():
+    # Set variables to use the index of the adjacency matrix
+    # Rather than the value to avoid math errors
+    ix = 0
+    count=0
+
+    for row in adj_matrix:     
+        if row[0] == source:
+            ix = count
+        else:
+            count+=1
+    dist[ix] = 0
+
+    # Check the distance vectors
+    # If positive, list out
+    # If negtive print a statement
+    for k in range(N-1):
+        for i in range(1,N):
+            for j in range(1,N): 
+                if dist[i] != sys.maxsize and adj_matrix[i][j] and dist[j]> (dist[i] + int(adj_matrix[i][j])):
+                    dist[j] = dist[i]+int(adj_matrix[i][j])     
+
+    for k in range(N-1):
+        for i in range(1,N):
+            for j in range (1,N):
+                if(adj_matrix[i][j] and dist[j] > (dist[i] + int(adj_matrix[i][j]))): 
+                    print("\n negative distance path")
+                    
+   # For the length of the adjacency matrix
+   # Print the distances for each node
+    for i in range(1,N):
+            print(" {}".format(dist[i]), end='')
+       
+def main():
+    dijkstra_algorithm()
     
-    dic = {}
-    
-            
-Dijkstra_algorithm()
+    # Run Bellman Ford algorithm 
+    # Skipping over the first row to only use the number values
+    for row in my_list[1:]:
+        print(f"\nDistance vector for node {row[0]}:", end='')
+        distance_vector(row[0], my_list)
+
+main()
